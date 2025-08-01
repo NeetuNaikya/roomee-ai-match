@@ -47,7 +47,7 @@ const Profile = () => {
     );
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!user || !idDocument || !idDocument.isVerified) {
       toast.error("Please complete government ID verification first");
       return;

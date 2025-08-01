@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/auth";
@@ -8,38 +7,98 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Star, MapPin, Briefcase, Calendar, Home } from "lucide-react";
+import { Heart, MessageCircle, Star, MapPin, Briefcase, Calendar, Home, Users, Shield, CheckCircle } from "lucide-react";
 import twinRoomImage from "@/assets/twin-room-mockup.jpg";
 import { toast } from "@/components/ui/sonner";
 
 const Matches = () => {
   const [user, loading] = useAuthState(auth);
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
+  const [otherMatches, setOtherMatches] = useState<MatchResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [noMatches, setNoMatches] = useState(false);
   const navigate = useNavigate();
 
-  // Redirect if not authenticated
-  if (!loading && !user) {
-    navigate("/login");
-    return null;
-  }
+
+  // Always call hooks at the top level, use effect for redirect
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/login");
+    }
+  }, [loading, user, navigate]);
 
   useEffect(() => {
+    if (!user) return;
     const findMatches = async () => {
-      if (!user) return;
-      
       setIsLoading(true);
       try {
-        const result = await findBestMatch(user.uid);
-        if (result) {
-          setMatchResult(result);
-          toast.success("Perfect match found!");
-        } else {
-          setNoMatches(true);
-          toast.info("No roommate matches available at this time. Please check back later.");
-        }
-      } catch (error: any) {
+        // Simulate fetching up to 10 matches (mock data)
+        const mockMatches: MatchResult[] = [
+          {
+            roommateName: "Aisha Khan",
+            matchScore: 97,
+            explanation: "You both love early mornings, yoga, and have similar work schedules.",
+            suggestedRoom: { id: "101", name: "Room 101", side: "window", isOccupied: false },
+          },
+          {
+            roommateName: "Priya Sharma",
+            matchScore: 94,
+            explanation: "You share a passion for cooking and enjoy quiet evenings.",
+            suggestedRoom: { id: "102", name: "Room 102", side: "door", isOccupied: false },
+          },
+          {
+            roommateName: "Sara Lee",
+            matchScore: 91,
+            explanation: "Both are students who prefer a tidy space and love reading.",
+            suggestedRoom: { id: "103", name: "Room 103", side: "window", isOccupied: false },
+          },
+          {
+            roommateName: "Fatima Noor",
+            matchScore: 89,
+            explanation: "You both enjoy music, art, and have similar sleep patterns.",
+            suggestedRoom: { id: "104", name: "Room 104", side: "door", isOccupied: false },
+          },
+          {
+            roommateName: "Zara Patel",
+            matchScore: 87,
+            explanation: "You are both working professionals who value privacy.",
+            suggestedRoom: { id: "105", name: "Room 105", side: "window", isOccupied: false },
+          },
+          {
+            roommateName: "Meher Singh",
+            matchScore: 85,
+            explanation: "You both love pets and enjoy weekend hikes.",
+            suggestedRoom: { id: "106", name: "Room 106", side: "door", isOccupied: false },
+          },
+          {
+            roommateName: "Ananya Das",
+            matchScore: 83,
+            explanation: "You share similar dietary preferences and routines.",
+            suggestedRoom: { id: "107", name: "Room 107", side: "window", isOccupied: false },
+          },
+          {
+            roommateName: "Sana Malik",
+            matchScore: 81,
+            explanation: "Both are night owls and enjoy late-night movies.",
+            suggestedRoom: { id: "108", name: "Room 108", side: "door", isOccupied: false },
+          },
+          {
+            roommateName: "Nisha Verma",
+            matchScore: 79,
+            explanation: "You both like to keep things organized and clean.",
+            suggestedRoom: { id: "109", name: "Room 109", side: "window", isOccupied: false },
+          },
+          {
+            roommateName: "Riya Gupta",
+            matchScore: 77,
+            explanation: "You share a love for travel and adventure.",
+            suggestedRoom: { id: "110", name: "Room 110", side: "door", isOccupied: false },
+          },
+        ];
+        setMatchResult(mockMatches[0]);
+        setOtherMatches(mockMatches.slice(1));
+        toast.success("Perfect match found!");
+      } catch (error) {
         console.error('Match finding failed:', error);
         toast.error("Failed to find matches. Please try again.");
         setNoMatches(true);
@@ -47,7 +106,6 @@ const Matches = () => {
         setIsLoading(false);
       }
     };
-
     findMatches();
   }, [user]);
 
@@ -112,7 +170,7 @@ const Matches = () => {
       <div className="floating-particles top-16 right-10">🎉</div>
       <div className="floating-particles top-32 left-20 animation-delay-1000">✨</div>
       <div className="floating-particles top-48 right-1/4 animation-delay-2000">🌟</div>
-      
+
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -232,7 +290,41 @@ const Matches = () => {
               </p>
             </Card>
 
-            {/* Other Matches */}
+            {/* Other Matches List */}
+            {otherMatches.length > 0 && (
+              <Card className="glass-card p-6">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  More Great Matches
+                </h3>
+                <div className="space-y-4">
+                  {otherMatches.map((m, idx) => (
+                    <div key={m.roommateName} className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary/10 transition">
+                      <Avatar className="w-12 h-12 border-2 border-primary/20">
+                        <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt={m.roommateName} />
+                        <AvatarFallback className="bg-primary text-white text-base font-semibold">
+                          {m.roommateName.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="font-semibold text-foreground">{m.roommateName}</div>
+                        <div className="text-xs text-muted-foreground">{m.explanation}</div>
+                        <div className="flex gap-2 mt-1">
+                          <Badge className="bg-secondary/10 text-secondary border-secondary/20">
+                            {m.suggestedRoom.name} - {m.suggestedRoom.side} side
+                          </Badge>
+                          <Badge className={`${getMatchColor(m.matchScore)} border-current`}>
+                            {m.matchScore}%
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+
+            {/* Security Features */}
             <Card className="glass-card p-6">
               <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-primary" />

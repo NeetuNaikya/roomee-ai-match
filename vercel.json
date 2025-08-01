@@ -2,11 +2,6 @@
     "rewrites": [
         { "source": "/(.*)", "destination": "/index.html" }
     ],
-    "redirects": [{
-        "source": "/",
-        "destination": "https://roomee-ai-match.vercel.app/",
-        "permanent": true
-    }],
     "headers": [{
         "source": "/(.*)",
         "headers": [

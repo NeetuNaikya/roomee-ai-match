@@ -1,4 +1,99 @@
 import * as React from "react"
+// Voice Agent Chatbot
+function VoiceAgentChatbot() {
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [voiceError, setVoiceError] = React.useState('');
+  const [messages, setMessages] = React.useState<{user: string, text: string}[]>([]);
+  const [text, setText] = React.useState('');
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+
+  // Start voice recording
+  const handleVoiceStart = () => {
+    setVoiceError('');
+    if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      setVoiceError('Speech recognition not supported in this browser.');
+      return;
+    }
+    const SpeechRecognitionClass = (window as unknown as { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition; }).SpeechRecognition ||
+      (window as unknown as { SpeechRecognition?: typeof SpeechRecognition; webkitSpeechRecognition?: typeof SpeechRecognition; }).webkitSpeechRecognition;
+    if (!SpeechRecognitionClass) {
+      setVoiceError('Speech recognition not supported in this browser.');
+      return;
+    }
+    const recognition = new SpeechRecognitionClass();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsRecording(true);
+    recognition.onerror = (event: any) => {
+      setVoiceError('Voice recognition error: ' + (event as SpeechRecognitionErrorEvent).error);
+      setIsRecording(false);
+    };
+    recognition.onend = () => setIsRecording(false);
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      setText(transcript);
+      setIsRecording(false);
+      setMessages(msgs => [...msgs, { user: 'You', text: transcript }]);
+      // Simulate AI response
+      setTimeout(() => {
+        const aiResponse = `AI: I heard you say "${transcript}"! How can I help you today?`;
+        setMessages(msgs => [...msgs, { user: 'AI', text: aiResponse }]);
+        handleSpeak(aiResponse);
+      }, 1200);
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  // Stop voice recording
+  const handleVoiceStop = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  // Play message with speech synthesis
+  const handleSpeak = (msg: string) => {
+    if (!('speechSynthesis' in window)) {
+      setVoiceError('Speech synthesis not supported in this browser.');
+      return;
+    }
+    const utter = new window.SpeechSynthesisUtterance(msg);
+    utter.lang = 'en-IN';
+    window.speechSynthesis.speak(utter);
+  };
+
+  return (
+    <div className="p-3 bg-white dark:bg-gray-900 rounded-xl shadow-lg mb-4">
+      <div className="font-bold text-pink-600 dark:text-pink-200 mb-2 text-center">🤖 Voice Agent</div>
+      <div className="h-32 overflow-y-auto bg-pink-50 dark:bg-pink-950 rounded-lg p-2 mb-2 flex flex-col gap-1">
+        {messages.length === 0 ? (
+          <div className="text-gray-400 text-center">Say something to start...</div>
+        ) : (
+          messages.map((msg, idx) => (
+            <div key={idx} className={`flex ${msg.user === 'You' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`px-3 py-1 rounded-2xl shadow text-sm font-medium ${msg.user === 'You' ? 'bg-pink-500 text-white' : 'bg-white dark:bg-pink-800 text-pink-700 dark:text-pink-100'}`}>{msg.text}</div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className={`bg-pink-400 text-white px-3 py-2 rounded-full shadow-lg transition-all duration-200 relative overflow-hidden ${isRecording ? 'animate-send' : 'hover:bg-pink-500 hover:scale-110'}`}
+          style={{ minWidth: 44 }}
+          onClick={isRecording ? handleVoiceStop : handleVoiceStart}
+          title={isRecording ? 'Stop recording' : 'Speak'}
+        >
+          {isRecording ? <span className="animate-send-icon">🎤...</span> : <span>🎤</span>}
+        </button>
+      </div>
+      {voiceError && <div className="mt-2 text-red-500 text-center animate-fade-in">{voiceError}</div>}
+    </div>
+  );
+}
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
 import { PanelLeft } from "lucide-react"
@@ -176,18 +271,19 @@ const Sidebar = React.forwardRef<
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
     if (collapsible === "none") {
-      return (
-        <div
-          className={cn(
-            "flex h-full w-[--sidebar-width] flex-col bg-sidebar text-sidebar-foreground",
-            className
-          )}
-          ref={ref}
-          {...props}
-        >
-          {children}
-        </div>
-      )
+  return (
+    <aside
+      data-sidebar="content"
+      className={cn(
+        "flex h-full flex-col gap-2 overflow-y-auto bg-sidebar px-2 py-2 text-sidebar-foreground shadow-lg",
+        className
+      )}
+      {...props}
+    >
+      <VoiceAgentChatbot />
+      {children}
+    </aside>
+  )
     }
 
     if (isMobile) {

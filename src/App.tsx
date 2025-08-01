@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
@@ -11,6 +11,8 @@ import Survey from "./pages/Survey";
 import Matches from "./pages/Matches";
 import NotFound from "./pages/NotFound";
 import RoomDocumentation from "./pages/RoomDocumentation";
+import Quiz from "./pages/Quiz";
+import Chat from "./pages/Chat";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient();
@@ -30,7 +32,8 @@ const App = () => (
             <Route path="/survey" element={<Survey />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/room-documentation" element={<RoomDocumentation />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/chat/:matchId" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

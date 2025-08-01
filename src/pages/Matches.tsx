@@ -272,7 +272,10 @@ const Matches = () => {
 
             {/* Action Buttons */}
             <div className="flex gap-3 mt-8">
-              <Button className="btn-primary flex-1 flex items-center justify-center gap-2">
+              <Button
+                className="btn-primary flex-1 flex items-center justify-center gap-2"
+                onClick={() => navigate(`/chat/${matchResult.roommateId}`)}
+              >
                 <MessageCircle className="w-4 h-4" />
                 Chat Now
               </Button>

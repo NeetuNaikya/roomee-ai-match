@@ -72,7 +72,7 @@ const Profile = () => {
         
         toast.success("Profile created successfully!");
         navigate("/path-selection");
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Profile creation failed:', error);
         toast.error("Failed to create profile. Please try again.");
       } finally {
@@ -93,9 +93,10 @@ const Profile = () => {
       setIdDocument(verifiedID);
       setFormData({...formData, governmentId: file});
       toast.success("Government ID verified successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('ID verification failed:', error);
-      toast.error(error.message || "ID verification failed. Please try again.");
+      const errorMessage = typeof error === 'object' && error && 'message' in error ? (error as { message?: string }).message : undefined;
+      toast.error(errorMessage || "ID verification failed. Please try again.");
       setIdDocument(null);
     } finally {
       setIsVerifying(false);

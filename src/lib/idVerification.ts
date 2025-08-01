@@ -1,3 +1,15 @@
+// DigiLocker Aadhaar Verification
+import axios from 'axios';
+
+export async function getDigilockerAuthUrl() {
+  const res = await axios.get('http://localhost:5000/api/digilocker/auth-url');
+  return res.data.url;
+}
+
+export async function handleDigilockerCallback(code: string) {
+  const res = await axios.get(`http://localhost:5000/api/digilocker/callback?code=${code}`);
+  return res.data.aadhaar;
+}
 import { v4 as uuidv4 } from 'uuid';
 
 export interface IDDocument {
@@ -98,6 +110,37 @@ export const verifyGovernmentID = async (
     }
     
     // Create verified ID document record
+    // Verify gender is female
+    if (ocrResult.gender !== 'female') {
+      throw new Error('This platform is exclusively for women. Gender verification failed.');
+    }
+    // Aadhaar-specific checks
+    if (ocrResult.documentType === 'aadhar') {
+      // Check Aadhaar number format (12 digits)
+      const aadhaarNum = (ocrResult.documentNumber || '').replace(/\s/g, '');
+      const isAadhaarValid = /^\d{12}$/.test(aadhaarNum);
+      if (!isAadhaarValid) {
+        throw new Error('Invalid Aadhaar number format.');
+      }
+      // Require DOB
+      if (!ocrResult.dateOfBirth) {
+        throw new Error('Aadhaar card must contain date of birth.');
+      }
+      // Require address (simulate by checking extractedText contains "Address" or similar)
+      if (!ocrResult.extractedText || !/address|Add|Addr|House|Street|Dist|Pin/i.test(ocrResult.extractedText)) {
+        throw new Error('Aadhaar card must contain address.');
+      }
+      // Check for authenticity (confidence and name)
+      if (!ocrResult.name || ocrResult.confidence < 0.8) {
+        throw new Error('Aadhaar authenticity check failed. Please upload a clear, original Aadhaar card.');
+      }
+    } else {
+      // Other document authenticity (confidence threshold)
+      if (ocrResult.confidence < 0.8) {
+        throw new Error('Document verification failed. Please upload a clear, authentic government ID.');
+      }
+    }
+    // Create verified ID document record
     const idDocument: IDDocument = {
       id: uuidv4(),
       userId,
@@ -110,19 +153,8 @@ export const verifyGovernmentID = async (
       verificationDate: new Date().toISOString(),
       extractedData: ocrResult
     };
-    
     return idDocument;
-  } catch (error: any) {
-    console.error('ID verification failed:', error);
+  } catch (error) {
     throw error;
   }
-};
-
-export const validateIDDocument = (idDocument: IDDocument): boolean => {
-  return (
-    idDocument.isVerified &&
-    idDocument.gender === 'female' &&
-    idDocument.fullName.length > 0 &&
-    idDocument.documentNumber.length > 0
-  );
-};
+}

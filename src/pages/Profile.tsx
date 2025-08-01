@@ -15,6 +15,33 @@ import { toast } from "@/components/ui/sonner";
 
 const Profile = () => {
   const [user, loading] = useAuthState(auth);
+  // DigiLocker Aadhaar verification
+  const [aadhaarVerified, setAadhaarVerified] = useState(false);
+  const [aadhaarDetails, setAadhaarDetails] = useState<any>(null);
+  const [aadhaarLoading, setAadhaarLoading] = useState(false);
+
+  const handleAadhaarVerify = async () => {
+    setAadhaarLoading(true);
+    try {
+      // Get DigiLocker auth URL
+      const { getDigilockerAuthUrl, handleDigilockerCallback } = await import("@/lib/idVerification");
+      const url = await getDigilockerAuthUrl();
+      // Open DigiLocker OAuth in new window
+      const win = window.open(url, "digilocker", "width=600,height=700");
+      // Listen for OAuth callback
+      window.addEventListener("message", async (event) => {
+        if (event.data && event.data.digilockerCode) {
+          const aadhaar = await handleDigilockerCallback(event.data.digilockerCode);
+          setAadhaarDetails(aadhaar);
+          setAadhaarVerified(true);
+          toast.success("Aadhaar verified via DigiLocker!");
+        }
+      }, { once: true });
+    } catch (err) {
+      toast.error("Aadhaar verification failed");
+    }
+    setAadhaarLoading(false);
+  };
   const [formData, setFormData] = useState({
     fullName: "",
     age: "",
@@ -49,7 +76,7 @@ const Profile = () => {
 
   const handleNext = async () => {
     if (!user || !idDocument || !idDocument.isVerified) {
-      toast.error("Please complete government ID verification first");
+      toast.error("Please complete government ID and Aadhaar verification first");
       return;
     }
 
@@ -90,6 +117,19 @@ const Profile = () => {
     setIsVerifying(true);
     try {
       const verifiedID = await verifyGovernmentID(file, user.uid);
+      // Aadhaar-specific checks
+      if (verifiedID.documentType === 'aadhar') {
+        // Check Aadhaar number format (12 digits)
+        const aadhaarNum = (verifiedID.documentNumber || '').replace(/\s/g, '');
+        const isAadhaarValid = /^\d{12}$/.test(aadhaarNum);
+        if (!isAadhaarValid) {
+          throw new Error('Aadhaar number format invalid. Please upload a valid Aadhaar card.');
+        }
+        // Check for authenticity (confidence and name)
+        if (!verifiedID.fullName || (verifiedID as any).confidence < 0.8) {
+          throw new Error('Aadhaar authenticity check failed. Please upload a clear, original Aadhaar card.');
+        }
+      }
       setIdDocument(verifiedID);
       setFormData({...formData, governmentId: file});
       toast.success("Government ID verified successfully!");

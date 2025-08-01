@@ -32,82 +32,15 @@ const Matches = () => {
     const findMatches = async () => {
       setIsLoading(true);
       try {
-        // Simulate fetching up to 10 matches (mock data)
-        const mockMatches: MatchResult[] = [
-          {
-            roommateId: "u101",
-            roommateName: "Aisha Khan",
-            matchScore: 97,
-            explanation: "You both love early mornings, yoga, and have similar work schedules.",
-            suggestedRoom: { id: "101", name: "Room 101", side: "window", isOccupied: false },
-          },
-          {
-            roommateId: "u102",
-            roommateName: "Priya Sharma",
-            matchScore: 94,
-            explanation: "You share a passion for cooking and enjoy quiet evenings.",
-            suggestedRoom: { id: "102", name: "Room 102", side: "door", isOccupied: false },
-          },
-          {
-            roommateId: "u103",
-            roommateName: "Sara Lee",
-            matchScore: 91,
-            explanation: "Both are students who prefer a tidy space and love reading.",
-            suggestedRoom: { id: "103", name: "Room 103", side: "window", isOccupied: false },
-          },
-          {
-            roommateId: "u104",
-            roommateName: "Fatima Noor",
-            matchScore: 89,
-            explanation: "You both enjoy music, art, and have similar sleep patterns.",
-            suggestedRoom: { id: "104", name: "Room 104", side: "door", isOccupied: false },
-          },
-          {
-            roommateId: "u105",
-            roommateName: "Zara Patel",
-            matchScore: 87,
-            explanation: "You are both working professionals who value privacy.",
-            suggestedRoom: { id: "105", name: "Room 105", side: "window", isOccupied: false },
-          },
-          {
-            roommateId: "u106",
-            roommateName: "Meher Singh",
-            matchScore: 85,
-            explanation: "You both love pets and enjoy weekend hikes.",
-            suggestedRoom: { id: "106", name: "Room 106", side: "door", isOccupied: false },
-          },
-          {
-            roommateId: "u107",
-            roommateName: "Ananya Das",
-            matchScore: 83,
-            explanation: "You share similar dietary preferences and routines.",
-            suggestedRoom: { id: "107", name: "Room 107", side: "window", isOccupied: false },
-          },
-          {
-            roommateId: "u108",
-            roommateName: "Sana Malik",
-            matchScore: 81,
-            explanation: "Both are night owls and enjoy late-night movies.",
-            suggestedRoom: { id: "108", name: "Room 108", side: "door", isOccupied: false },
-          },
-          {
-            roommateId: "u109",
-            roommateName: "Nisha Verma",
-            matchScore: 79,
-            explanation: "You both like to keep things organized and clean.",
-            suggestedRoom: { id: "109", name: "Room 109", side: "window", isOccupied: false },
-          },
-          {
-            roommateId: "u110",
-            roommateName: "Riya Gupta",
-            matchScore: 77,
-            explanation: "You share a love for travel and adventure.",
-            suggestedRoom: { id: "110", name: "Room 110", side: "door", isOccupied: false },
-          },
-        ];
-        setMatchResult(mockMatches[0]);
-        setOtherMatches(mockMatches.slice(1));
-        toast.success("Perfect match found!");
+        // Use real match making for authenticated users only
+        const bestMatch = await findBestMatch(user.uid);
+        if (!bestMatch) {
+          setNoMatches(true);
+        } else {
+          setMatchResult(bestMatch);
+          setOtherMatches([]); // Optionally fetch more matches if supported
+          toast.success("Perfect match found!");
+        }
       } catch (error) {
         console.error('Match finding failed:', error);
         toast.error("Failed to find matches. Please try again.");

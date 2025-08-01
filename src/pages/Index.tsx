@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Users, Heart, Sparkles, ArrowRight, Mic, Shield, Zap, Moon, Sun } from "lucide-react";
+import { Users, Heart, Sparkles, ArrowRight, Mic, Shield, Zap, Moon, Sun, Star, Smile, Facebook, Twitter, Instagram } from "lucide-react";
 import heroImage from "@/assets/hero-roommates.jpg";
+import twinRoomImage from "@/assets/twin-room-mockup.jpg";
 import { useTheme } from "@/components/theme-provider";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -18,20 +19,42 @@ const Index = () => {
     setTheme(theme === "dark" ? "light" : "dark");
   };
 
+  // Live match counter (demo)
+  const [matchCount, setMatchCount] = useState(1200);
   // Add floating particles effect
   useEffect(() => {
     const particles = document.querySelectorAll('.floating-particle');
     particles.forEach(particle => {
       const duration = Math.random() * 15 + 10;
       const delay = Math.random() * 5;
-      particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+      // TypeScript fix: cast to HTMLElement
+      (particle as HTMLElement).style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
     });
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMatchCount((c) => c + Math.floor(Math.random() * 3));
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' 
       ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-      : 'bg-gradient-to-br from-primary-soft via-background to-primary-glow'} relative overflow-hidden`}>
+      : 'bg-gradient-to-br from-pink-200 via-purple-100 to-blue-100'} relative overflow-hidden`}>
+      {/* Animated gradient background shapes - more bubbles! */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-80px] left-[-80px] w-72 h-72 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full opacity-30 animate-spin-slow" />
+        <div className="absolute bottom-[-60px] right-[-60px] w-56 h-56 bg-gradient-to-br from-blue-400 to-pink-300 rounded-full opacity-20 animate-pulse" />
+        <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-gradient-to-br from-purple-300 to-blue-200 rounded-full opacity-20 animate-bounce" />
+        {/* Extra bubbles */}
+        <div className="absolute top-24 left-1/4 w-24 h-24 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full opacity-20 animate-bounce-slow" />
+        <div className="absolute bottom-32 right-1/3 w-20 h-20 bg-gradient-to-br from-blue-200 to-pink-200 rounded-full opacity-20 animate-spin-slow" />
+        <div className="absolute top-1/3 right-1/4 w-16 h-16 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full opacity-20 animate-bounce" />
+        <div className="absolute bottom-1/4 left-1/5 w-28 h-28 bg-gradient-to-br from-pink-300 to-blue-200 rounded-full opacity-10 animate-pulse" />
+        <div className="absolute top-1/5 right-1/6 w-14 h-14 bg-gradient-to-br from-blue-300 to-purple-200 rounded-full opacity-10 animate-bounce-slow" />
+      </div>
       
       {/* Theme toggle button */}
       <button 
@@ -42,15 +65,15 @@ const Index = () => {
         {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
       </button>
 
-      {/* Floating decorations */}
-      {['✨', '🌟', '💫', '🎉'].map((emoji, i) => (
+      {/* Floating decorations - more emojis! */}
+      {["✨", "🌟", "💫", "🎉", "🏆", "👭", "🏠", "🪐", "💎", "🍀", "🦄", "🌈", "🎈", "🧸"].map((emoji, i) => (
         <div 
           key={i}
-          className="floating-particle absolute text-xl opacity-70"
+          className="floating-particle absolute text-2xl opacity-70 animate-float"
           style={{
-            top: `${Math.random() * 80 + 10}%`,
-            left: `${Math.random() * 80 + 10}%`,
-            animationDelay: `${i * 2}s`
+            top: `${10 + (i % 7) * 12}%`,
+            left: `${8 + (i * 7) % 80}%`,
+            animationDelay: `${i * 1.2}s`
           }}
         >
           {emoji}
@@ -59,7 +82,7 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         {/* Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 animate-fade-in">
           <div className={`inline-flex items-center gap-3 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-full px-6 py-3 mb-8 animate-bounce`}>
             <div className={`w-8 h-8 rounded-full ${theme === 'dark' 
               ? 'bg-gradient-to-r from-purple-600 to-blue-500' 
@@ -71,20 +94,84 @@ const Index = () => {
             </span>
           </div>
           
-          <h1 className={`text-5xl md:text-6xl font-display font-bold ${theme === 'dark' ? 'text-white' : 'text-foreground'} mb-6 leading-tight`}>
+          <h1 className={`text-5xl md:text-6xl font-display font-bold ${theme === 'dark' ? 'text-white' : 'text-foreground'} mb-6 leading-tight drop-shadow-lg`}>
             Find Your Perfect
             <br />
             <span className={`bg-gradient-to-r ${theme === 'dark' 
               ? 'from-purple-400 to-blue-400' 
-              : 'from-primary to-primary-glow'} bg-clip-text text-transparent`}>
+              : 'from-pink-500 via-purple-500 to-blue-500'} bg-clip-text text-transparent animate-gradient-move`}>
               Roommate Match
             </span>
           </h1>
           
-          <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'} max-w-2xl mx-auto mb-8`}>
-            AI-powered roommate matching for twin-sharing accommodations. 
-            Get matched with compatible roommates in just 3 simple steps.
+          <p className={`text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-muted-foreground'} max-w-2xl mx-auto mb-8 animate-fade-in`}>
+            AI-powered roommate matching for twin-sharing accommodations.<br />
+            <span className="font-semibold text-pink-500 dark:text-purple-300">Get matched with compatible roommates in just 3 simple steps.</span>
           </p>
+          {/* Live Match Counter */}
+          <div className="flex justify-center items-center gap-2 mb-8 animate-fade-in">
+            <Star className="w-6 h-6 text-yellow-400 animate-bounce" />
+            <span className="text-2xl font-bold text-pink-600 dark:text-purple-300">{matchCount.toLocaleString()}</span>
+            <span className="text-lg text-gray-500 dark:text-gray-300">matches made so far!</span>
+          </div>
+          {/* Featured Roommates Carousel */}
+          <div className="mb-12 max-w-2xl mx-auto">
+            <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
+              {[{
+                name: "Priya K.",
+                bio: "Loves yoga, early riser, foodie",
+                img: heroImage
+              }, {
+                name: "Rahul M.",
+                bio: "Techie, gamer, night owl",
+                img: twinRoomImage
+              }, {
+                name: "Ananya S.",
+                bio: "Artist, bookworm, neat freak",
+                img: heroImage
+              }].map((roommate, idx) => (
+                <div key={idx} className="min-w-[180px] bg-white dark:bg-pink-900 rounded-2xl shadow-lg p-4 flex flex-col items-center animate-fade-in">
+                  <img src={roommate.img} alt={roommate.name} className="w-16 h-16 rounded-full object-cover mb-2 border-4 border-pink-300 dark:border-purple-400" />
+                  <div className="font-bold text-pink-600 dark:text-purple-200">{roommate.name}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-300">{roommate.bio}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        {/* Why Choose Us Section */}
+        <div className="mb-16 max-w-4xl mx-auto animate-fade-in">
+          <h2 className={`text-2xl font-bold text-center mb-8 ${theme === 'dark' ? 'text-white' : 'text-pink-700'}`}>Why Choose Roomee?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[{
+              icon: <Smile className="w-8 h-8 text-pink-500 dark:text-purple-300" />,
+              title: "Friendly Community",
+              desc: "Connect with like-minded people and make lifelong friends."
+            }, {
+              icon: <Shield className="w-8 h-8 text-pink-500 dark:text-purple-300" />,
+              title: "Verified & Safe",
+              desc: "ID verification and women-only options for peace of mind."
+            }, {
+              icon: <Zap className="w-8 h-8 text-pink-500 dark:text-purple-300" />,
+              title: "Instant Matching",
+              desc: "Get matches instantly with our smart AI."
+            }].map((item, idx) => (
+              <div key={idx} className="bg-white dark:bg-pink-900 rounded-2xl shadow-lg p-6 text-center animate-fade-in">
+                <div className="mb-4">{item.icon}</div>
+                <div className="font-bold text-lg mb-2">{item.title}</div>
+                <div className="text-gray-500 dark:text-gray-300 text-sm">{item.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Newsletter Signup */}
+        <div className="max-w-xl mx-auto mb-16 text-center animate-fade-in">
+          <h2 className="text-xl font-bold mb-2 text-pink-600 dark:text-purple-200">Stay Updated!</h2>
+          <p className="mb-4 text-gray-500 dark:text-gray-300">Sign up for our newsletter to get the latest roommate tips and updates.</p>
+          <form className="flex gap-2 justify-center">
+            <input type="email" placeholder="Your email" className="p-3 rounded-xl border-2 border-pink-300 dark:border-purple-400 bg-pink-50 dark:bg-pink-950 text-pink-700 dark:text-pink-200 focus:outline-none" required />
+            <Button type="submit" className="bg-pink-600 text-white px-6 py-2 rounded-xl hover:bg-pink-700 dark:bg-pink-800 font-bold shadow-lg transition-all duration-200">Subscribe</Button>
+          </form>
+        </div>
 
           {/* Hero Image */}
           <div className={`${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/30'} backdrop-blur-md rounded-[32px] p-6 max-w-2xl mx-auto mb-12 shadow-xl`}>
@@ -245,14 +332,33 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Footer with social icons */}
       <footer className={`py-8 ${theme === 'dark' ? 'bg-gray-900/50' : 'bg-white/50'} backdrop-blur-md mt-24`}>
         <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center gap-6 mb-4">
+            <a href="#" className="hover:scale-110 transition-transform"><Facebook className="w-6 h-6 text-pink-500 dark:text-purple-300" /></a>
+            <a href="#" className="hover:scale-110 transition-transform"><Twitter className="w-6 h-6 text-pink-500 dark:text-purple-300" /></a>
+            <a href="#" className="hover:scale-110 transition-transform"><Instagram className="w-6 h-6 text-pink-500 dark:text-purple-300" /></a>
+          </div>
           <p className={theme === 'dark' ? 'text-gray-400' : 'text-muted-foreground'}>
             © {new Date().getFullYear()} Roomee. All rights reserved.
           </p>
         </div>
       </footer>
+      {/* Custom animations */}
+      <style>{`
+        @keyframes fade-in { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+        .animate-fade-in { animation: fade-in 0.7s ease; }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes bounce-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+        .animate-bounce-slow { animation: bounce-slow 4s infinite; }
+        @keyframes spin-slow { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+        @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        .animate-gradient-move { background-size: 200% 200%; animation: gradient-move 3s linear infinite alternate; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
 
       {/* Floating action button */}
       <button 

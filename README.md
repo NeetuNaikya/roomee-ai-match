@@ -1,73 +1,106 @@
-# Welcome to your Lovable project
+# Roomee AI Match
 
-## Project info
+> **AI-powered roommate matching for women, with secure profile creation and government ID verification.**
 
-**URL**: https://lovable.dev/projects/1fcda294-16a9-4c9d-830f-8e48aa1f566b
+## Features
 
-## How can I edit this code?
+- ✨ AI-powered roommate matching algorithm
+- 👩‍🤝‍👩 Women-only platform for safety and comfort
+- 🛡️ Secure Gmail authentication (Google OAuth 2.0)
+- 🪪 Government ID verification (Aadhaar, Passport, etc.)
+- 📋 Profile creation with photo upload and personal details
+- 🏠 Room and roommate suggestions with compatibility scores
+- 🔒 Modern, beautiful UI with responsive design
 
-There are several ways of editing your application.
+## Screenshots
 
-**Use Lovable**
+![Login Page](public/placeholder.svg)
+![Profile Creation](public/placeholder.svg)
+![Matches Page](public/placeholder.svg)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/1fcda294-16a9-4c9d-830f-8e48aa1f566b) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v18+ recommended)
+- npm or bun
+- Firebase project (for authentication and database)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. **Clone the repository:**
+   ```sh
+   git clone https://github.com/Muneerali199/roomee-ai-match.git
+   cd roomee-ai-match
+   ```
 
-Follow these steps:
+2. **Install dependencies:**
+   ```sh
+   npm install
+   # or
+   bun install
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. **Set up environment variables:**
+   - Copy `.env.example` to `.env` and fill in your Firebase credentials.
+   - Example:
+     ```env
+     VITE_FIREBASE_API_KEY=your_api_key
+     VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+     VITE_FIREBASE_PROJECT_ID=your_project_id
+     VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+     VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+     VITE_FIREBASE_APP_ID=your_app_id
+     VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+     ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4. **Start the development server:**
+   ```sh
+   npm run dev
+   # or
+   bun run dev
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+5. **Open the app:**
+   - Visit [http://localhost:5173](http://localhost:5173) in your browser.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+## Project Structure
+
+```
+roomee-ai-match/
+├── public/                # Static assets
+├── src/
+│   ├── assets/            # Images and media
+│   ├── components/        # Reusable UI components
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Firebase, database, and utility logic
+│   ├── pages/             # Main app pages (Login, Profile, Matches, etc.)
+│   └── ...
+├── .env                   # Environment variables
+├── package.json           # Project metadata and scripts
+├── tailwind.config.ts     # Tailwind CSS config
+├── vite.config.ts         # Vite config
+└── ...
 ```
 
-**Edit a file directly in GitHub**
+## Usage
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. **Sign in with Gmail** (only Gmail accounts allowed)
+2. **Complete your profile** with photo and government ID verification
+3. **Get matched** with compatible roommates and view room suggestions
 
-**Use GitHub Codespaces**
+## Tech Stack
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
+- React + TypeScript
 - Vite
-- TypeScript
-- React
-- shadcn-ui
 - Tailwind CSS
+- Firebase (Auth, Firestore)
+- Lucide React Icons
 
-## How can I deploy this project?
+## Contributing
 
-Simply open [Lovable](https://lovable.dev/projects/1fcda294-16a9-4c9d-830f-8e48aa1f566b) and click on Share -> Publish.
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-## Can I connect a custom domain to my Lovable project?
+## License
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+MIT

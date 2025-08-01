@@ -22,7 +22,11 @@ const Login = () => {
       navigate("/profile");
     } catch (error: any) {
       console.error('Sign in failed:', error);
-      toast.error(error.message || 'Sign in failed. Please try again.');
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast.error('Sign-in popup was closed before completing authentication. Please try again.');
+      } else {
+        toast.error(error.message || 'Sign in failed. Please try again.');
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -73,11 +77,20 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-soft via-background to-primary-glow relative overflow-hidden">
+      {/* Loading overlay for sign-in */}
+      {isSigningIn && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60">
+          <div className="animate-spin rounded-full h-16 w-16 border-8 border-primary border-t-transparent mb-6"></div>
+          <p className="text-lg font-semibold text-white mb-2">Waiting for Google sign-in...</p>
+          <p className="text-sm text-white/80">Please complete the authentication in the popup window.</p>
+        </div>
+      )}
+
       {/* Floating decorations */}
       <div className="floating-particles top-20 left-10">✨</div>
       <div className="floating-particles top-40 right-20 animation-delay-1000">🌟</div>
       <div className="floating-particles top-60 left-1/4 animation-delay-2000">💫</div>
-      
+
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">

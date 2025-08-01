@@ -3,12 +3,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, User } from 'fir
 
 const firebaseConfig = {
   // These would be your actual Firebase config values
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "demo-key",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "roomee-demo.firebaseapp.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "roomee-demo",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "roomee-demo.appspot.com",
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-key",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "roomee-demo.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "roomee-demo",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "roomee-demo.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abcdef"
 };
 
 const app = initializeApp(firebaseConfig);

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, signOutUser } from "@/lib/auth";
 import { verifyGovernmentID, IDDocument } from "@/lib/idVerification";
-import { db } from "@/lib/database";
+import { profileService } from "@/lib/supabase-database";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -83,18 +83,17 @@ const Profile = () => {
     if (formData.fullName && formData.age && formData.maritalStatus && formData.workStatus && formData.location) {
       setIsSubmitting(true);
       try {
-        // Create user profile in database
-        await db.createUser({
+        // Create user profile in Supabase
+        await profileService.createProfile({
+          user_id: user.uid,
           email: user.email!,
-          fullName: formData.fullName,
+          full_name: formData.fullName,
           age: parseInt(formData.age),
           location: formData.location,
-          occupation: formData.occupation,
-          maritalStatus: formData.maritalStatus as 'single' | 'married',
-          workStatus: formData.workStatus as 'working' | 'student' | 'both',
-          profilePhoto: formData.profilePhoto ? URL.createObjectURL(formData.profilePhoto) : undefined,
-          isVerified: true,
-          idDocument: idDocument,
+          occupation: formData.occupation || undefined,
+          profile_photo_url: formData.profilePhoto ? URL.createObjectURL(formData.profilePhoto) : undefined,
+          is_verified: true,
+          id_document: idDocument,
         });
         
         toast.success("Profile created successfully!");

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/auth";
-import { db, SurveyResponse } from "@/lib/database";
+import { surveyService, SurveyResponse } from "@/lib/supabase-database";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,12 +28,10 @@ const Survey = () => {
     {
       id: 1,
       question: "What's your ideal sleeping schedule?",
-      key: 'sleepSchedule' as keyof SurveyResponse,
+      key: 'sleep_schedule' as keyof SurveyResponse,
       options: [
         { label: "Early bird (sleep by 10 PM, wake up by 6 AM)", value: "early_bird" },
-        { label: "Night owl (sleep after midnight, wake up late)", value: "night_owl" },
-        { label: "Flexible schedule", value: "flexible" },
-        { label: "Depends on work/study schedule", value: "work_dependent" }
+        { label: "Night owl (sleep after midnight, wake up late)", value: "night_owl" }
       ]
     },
     {
@@ -41,75 +39,70 @@ const Survey = () => {
       question: "What's your approach to cleanliness?",
       key: 'cleanliness' as keyof SurveyResponse,
       options: [
-        { label: "Very organized, clean daily", value: "very_organized" },
-        { label: "Tidy most of the time", value: "tidy" },
-        { label: "Clean when needed", value: "clean_when_needed" },
-        { label: "Relaxed about mess", value: "relaxed" }
+        { label: "Very clean and organized", value: "very_clean" },
+        { label: "Moderately clean", value: "moderately_clean" },
+        { label: "Relaxed about cleanliness", value: "relaxed" }
       ]
     },
     {
       id: 3,
-      question: "How do you prefer to socialize at home?",
-      key: 'sociability' as keyof SurveyResponse,
+      question: "How social are you at home?",
+      key: 'social_habits' as keyof SurveyResponse,
       options: [
-        { label: "Love having friends over frequently", value: "love_guests" },
-        { label: "Occasional gatherings are fine", value: "occasional_ok" },
-        { label: "Prefer quiet, minimal visitors", value: "prefer_quiet" },
-        { label: "Open to roommate's preferences", value: "open_to_preferences" }
+        { label: "Very social, love having people over", value: "very_social" },
+        { label: "Moderately social", value: "moderately_social" },
+        { label: "Prefer quiet environment", value: "prefer_quiet" }
       ]
     },
     {
       id: 4,
-      question: "How important is personal space to you?",
-      key: 'personalSpace' as keyof SurveyResponse,
+      question: "How often do you have guests over?",
+      key: 'guests_frequency' as keyof SurveyResponse,
       options: [
-        { label: "Need lots of alone time", value: "need_lots" },
-        { label: "Moderate personal space", value: "moderate" },
-        { label: "Love spending time together", value: "love_together" },
-        { label: "Very flexible and social", value: "very_flexible" }
+        { label: "Never", value: "never" },
+        { label: "Rarely", value: "rarely" },
+        { label: "Sometimes", value: "sometimes" },
+        { label: "Often", value: "often" }
       ]
     },
     {
       id: 5,
-      question: "What are your deal-breakers?",
-      key: 'dealBreakers' as keyof SurveyResponse,
+      question: "How sensitive are you to noise?",
+      key: 'noise_tolerance' as keyof SurveyResponse,
       options: [
-        { label: "Smoking or excessive drinking", value: "smoking_drinking" },
-        { label: "Loud music/parties late at night", value: "loud_parties" },
-        { label: "Bringing romantic partners over frequently", value: "frequent_partners" },
-        { label: "Poor hygiene or cleanliness", value: "poor_hygiene" }
+        { label: "Very sensitive to noise", value: "very_sensitive" },
+        { label: "Somewhat sensitive", value: "somewhat_sensitive" },
+        { label: "Not sensitive to noise", value: "not_sensitive" }
       ]
     },
     {
       id: 6,
-      question: "What's your room preference?",
-      key: 'roomPreference' as keyof SurveyResponse,
+      question: "How do you like shared spaces?",
+      key: 'shared_spaces' as keyof SurveyResponse,
       options: [
-        { label: "Near window (natural light)", value: "window_side" },
-        { label: "Ground level (easy access)", value: "ground_level" },
-        { label: "No specific preference", value: "no_preference" }
+        { label: "Minimalist and clean", value: "minimalist" },
+        { label: "Organized but lived-in", value: "organized" },
+        { label: "Comfortable and lived-in", value: "lived_in" }
       ]
     },
     {
       id: 7,
-      question: "What are your typical work hours?",
-      key: 'workHours' as keyof SurveyResponse,
+      question: "What's your communication style?",
+      key: 'communication_style' as keyof SurveyResponse,
       options: [
-        { label: "Standard 9 AM - 5 PM", value: "standard_9_5" },
-        { label: "Flexible hours", value: "flexible" },
-        { label: "Night shift", value: "night_shift" },
-        { label: "Student schedule", value: "student_schedule" }
+        { label: "Direct and straightforward", value: "direct" },
+        { label: "Diplomatic and considerate", value: "diplomatic" },
+        { label: "Prefer to avoid conflict", value: "conflict_avoidant" }
       ]
     },
     {
       id: 8,
-      question: "How do you handle noise?",
-      key: 'noiseTolerance' as keyof SurveyResponse,
+      question: "What's your lifestyle?",
+      key: 'lifestyle' as keyof SurveyResponse,
       options: [
-        { label: "Need very quiet environment", value: "very_quiet" },
-        { label: "Moderate noise is okay", value: "moderate" },
-        { label: "Can handle most noise", value: "can_handle_noise" },
-        { label: "No preference", value: "no_preference" }
+        { label: "Homebody, prefer staying in", value: "homebody" },
+        { label: "Balanced between home and out", value: "balanced" },
+        { label: "Very active, often out", value: "very_active" }
       ]
     }
   ];
@@ -134,21 +127,21 @@ const Survey = () => {
 
     setIsSubmitting(true);
     try {
-      // Create survey response object
-      const surveyResponse: SurveyResponse = {
-        userId: user.uid,
-        sleepSchedule: answers[0] as any,
-        cleanliness: answers[1] as any,
-        sociability: answers[2] as any,
-        personalSpace: answers[3] as any,
-        dealBreakers: answers[4] as any,
-        roomPreference: answers[5] as any,
-        workHours: answers[6] as any,
-        noiseTolerance: answers[7] as any,
+      // Create survey response object matching Supabase schema
+      const surveyResponse = {
+        user_id: user.uid,
+        sleep_schedule: answers[0],
+        cleanliness: answers[1],
+        social_habits: answers[2],
+        guests_frequency: answers[3],
+        noise_tolerance: answers[4],
+        shared_spaces: answers[5],
+        communication_style: answers[6],
+        lifestyle: answers[7],
       };
 
       // Save survey response
-      await db.saveSurveyResponse(surveyResponse);
+      await surveyService.saveSurveyResponse(surveyResponse);
       
       toast.success("Survey completed! Finding your matches...");
       navigate("/matches");

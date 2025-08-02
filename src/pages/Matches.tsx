@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/auth";
-import { db, findBestMatch, MatchResult } from "@/lib/database";
+import { findBestMatches, matchingService, profileService, MatchingResult, UserProfile } from "@/lib/supabase-database";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,14 +11,16 @@ import { Heart, MessageCircle, Star, MapPin, Briefcase, Calendar, Home, Users, S
 import twinRoomImage from "@/assets/twin-room-mockup.jpg";
 import { toast } from "@/components/ui/sonner";
 
+interface MatchWithProfile extends MatchingResult {
+  profile?: UserProfile;
+}
+
 const Matches = () => {
   const [user, loading] = useAuthState(auth);
-  const [matchResult, setMatchResult] = useState<MatchResult | null>(null);
-  const [otherMatches, setOtherMatches] = useState<MatchResult[]>([]);
+  const [matches, setMatches] = useState<MatchWithProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [noMatches, setNoMatches] = useState(false);
   const navigate = useNavigate();
-
 
   // Always call hooks at the top level, use effect for redirect
   useEffect(() => {
@@ -32,14 +34,22 @@ const Matches = () => {
     const findMatches = async () => {
       setIsLoading(true);
       try {
-        // Use real match making for authenticated users only
-        const bestMatch = await findBestMatch(user.uid);
-        if (!bestMatch) {
+        // Find matches using the new Supabase service
+        const matchResults = await findBestMatches(user.uid);
+        
+        if (!matchResults || matchResults.length === 0) {
           setNoMatches(true);
         } else {
-          setMatchResult(bestMatch);
-          setOtherMatches([]); // Optionally fetch more matches if supported
-          toast.success("Perfect match found!");
+          // Fetch profile data for each match
+          const matchesWithProfiles = await Promise.all(
+            matchResults.map(async (match) => {
+              const profile = await profileService.getProfileByUserId(match.matched_user_id);
+              return { ...match, profile };
+            })
+          );
+          
+          setMatches(matchesWithProfiles);
+          toast.success(`Found ${matchResults.length} perfect match${matchResults.length > 1 ? 'es' : ''}!`);
         }
       } catch (error) {
         console.error('Match finding failed:', error);
@@ -69,7 +79,7 @@ const Matches = () => {
     );
   }
 
-  if (noMatches || !matchResult) {
+  if (noMatches || matches.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-soft via-background to-primary-glow relative overflow-hidden">
         <div className="container mx-auto px-4 py-8 relative z-10">
@@ -104,8 +114,11 @@ const Matches = () => {
     );
   }
 
+  const topMatch = matches[0];
+  const otherMatches = matches.slice(1);
+  
   const circumference = 2 * Math.PI * 45;
-  const offset = circumference - (matchResult.matchScore / 100) * circumference;
+  const offset = circumference - (topMatch.compatibility_score / 100) * circumference;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-soft via-background to-primary-glow relative overflow-hidden">
@@ -119,18 +132,18 @@ const Matches = () => {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-white/50 rounded-full px-4 py-2 mb-4">
             <Star className="w-5 h-5 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Step 3 of 3</span>
+            <span className="text-sm font-semibold text-foreground">Matches Found</span>
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
             Your Perfect Matches! 
           </h1>
           <p className="text-muted-foreground">
-            Our AI found your perfect roommate match!
+            Our AI found your perfect roommate match{matches.length > 1 ? 'es' : ''}!
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {/* Match Details */}
+          {/* Top Match Details */}
           <Card className="brutal-card p-8">
             <div className="text-center mb-6">
               {/* Progress Ring */}
@@ -158,8 +171,8 @@ const Matches = () => {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className={`text-2xl font-bold ${getMatchColor(matchResult.matchScore)}`}>
-                      {matchResult.matchScore}%
+                    <div className={`text-2xl font-bold ${getMatchColor(topMatch.compatibility_score)}`}>
+                      {topMatch.compatibility_score}%
                     </div>
                     <div className="text-xs text-muted-foreground">Match</div>
                   </div>
@@ -168,37 +181,49 @@ const Matches = () => {
               </div>
 
               <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-primary/20">
-                <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt={matchResult.roommateName} />
+                <AvatarImage 
+                  src={topMatch.profile?.profile_photo_url || "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"} 
+                  alt={topMatch.profile?.full_name || "Roommate"} 
+                />
                 <AvatarFallback className="bg-primary text-white text-lg font-semibold">
-                  {matchResult.roommateName.split(' ').map(n => n[0]).join('')}
+                  {topMatch.profile?.full_name?.split(' ').map(n => n[0]).join('') || 'RM'}
                 </AvatarFallback>
               </Avatar>
 
               <h2 className="text-2xl font-display font-bold text-foreground">
-                {matchResult.roommateName}
+                {topMatch.profile?.full_name || 'Roommate'}
               </h2>
+              
+              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                <span>{topMatch.profile?.location || 'Location not specified'}</span>
+              </div>
             </div>
 
             {/* Bio */}
             <div className="glass-card rounded-[20px] p-4 mb-6">
               <p className="text-sm text-foreground text-center">
-                "{matchResult.explanation}"
+                "{topMatch.profile?.bio || 'Looking forward to being great roommates!'}"
               </p>
             </div>
 
-            {/* Room Details */}
+            {/* Shared Preferences */}
             <div className="space-y-4">
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Suggested Room</h3>
-                <Badge className="bg-secondary/10 text-secondary border-secondary/20">
-                  {matchResult.suggestedRoom.name} - {matchResult.suggestedRoom.side} side
-                </Badge>
+                <h3 className="font-semibold text-foreground mb-2">Shared Preferences</h3>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(topMatch.shared_preferences || {}).map(([key, value]) => (
+                    <Badge key={key} className="bg-secondary/10 text-secondary border-secondary/20">
+                      {String(value).replace('_', ' ')}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
               <div>
                 <h3 className="font-semibold text-foreground mb-2">Match Score</h3>
-                <Badge className={`${getMatchColor(matchResult.matchScore)} border-current`}>
-                  {matchResult.matchScore}% Compatible
+                <Badge className={`${getMatchColor(topMatch.compatibility_score)} border-current`}>
+                  {topMatch.compatibility_score}% Compatible
                 </Badge>
               </div>
             </div>
@@ -207,7 +232,7 @@ const Matches = () => {
             <div className="flex gap-3 mt-8">
               <Button
                 className="btn-primary flex-1 flex items-center justify-center gap-2"
-                onClick={() => navigate(`/chat/${matchResult.roommateId}`)}
+                onClick={() => navigate(`/chat/${topMatch.matched_user_id}`)}
               >
                 <MessageCircle className="w-4 h-4" />
                 Chat Now
@@ -244,26 +269,33 @@ const Matches = () => {
                   More Great Matches
                 </h3>
                 <div className="space-y-4">
-                  {otherMatches.map((m, idx) => (
-                    <div key={m.roommateName} className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary/10 transition">
+                  {otherMatches.map((match) => (
+                    <div key={match.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-primary/10 transition">
                       <Avatar className="w-12 h-12 border-2 border-primary/20">
-                        <AvatarImage src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt={m.roommateName} />
+                        <AvatarImage 
+                          src={match.profile?.profile_photo_url || "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face"} 
+                          alt={match.profile?.full_name || "Roommate"} 
+                        />
                         <AvatarFallback className="bg-primary text-white text-base font-semibold">
-                          {m.roommateName.split(' ').map(n => n[0]).join('')}
+                          {match.profile?.full_name?.split(' ').map(n => n[0]).join('') || 'RM'}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="font-semibold text-foreground">{m.roommateName}</div>
-                        <div className="text-xs text-muted-foreground">{m.explanation}</div>
+                        <div className="font-semibold text-foreground">{match.profile?.full_name || 'Roommate'}</div>
+                        <div className="text-xs text-muted-foreground">{match.profile?.location || 'Location not specified'}</div>
                         <div className="flex gap-2 mt-1">
-                          <Badge className="bg-secondary/10 text-secondary border-secondary/20">
-                            {m.suggestedRoom.name} - {m.suggestedRoom.side} side
-                          </Badge>
-                          <Badge className={`${getMatchColor(m.matchScore)} border-current`}>
-                            {m.matchScore}%
+                          <Badge className={`${getMatchColor(match.compatibility_score)} border-current`}>
+                            {match.compatibility_score}%
                           </Badge>
                         </div>
                       </div>
+                      <Button
+                        size="sm"
+                        onClick={() => navigate(`/chat/${match.matched_user_id}`)}
+                        className="btn-primary"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
